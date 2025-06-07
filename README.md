@@ -1,1 +1,1 @@
-# OJ Project
+# Algo Project
