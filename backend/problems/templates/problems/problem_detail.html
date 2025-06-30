@@ -1,0 +1,4 @@
+<h2>{{ problem.title }}</h2>
+<p>{{ problem.description }}</p>
+<a href="{% url 'problem_update' problem.pk %}">Edit</a>
+<a href="{% url 'problem_list' %}">Back to List</a>

@@ -1,0 +1,11 @@
+<h2>All Problems</h2>
+<a href="{% url 'problem_create' %}">Create New</a>
+<ul>
+{% for problem in problems %}
+    <li>
+        <a href="{% url 'problem_detail' problem.pk %}">{{ problem.title }}</a>
+        | <a href="{% url 'problem_update' problem.pk %}">Edit</a>
+        | <a href="{% url 'problem_delete' problem.pk %}">Delete</a>
+    </li>
+{% endfor %}
+</ul>

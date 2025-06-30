@@ -1,0 +1,16 @@
+<!-- submission_form.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% if object %}Edit{% else %}Create{% endif %} Submission</title>
+</head>
+<body>
+    <h1>{% if object %}Edit{% else %}Create{% endif %} Submission</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+    </form>
+    <a href="{% url 'submission_list' %}">Back to list</a>
+</body>
+</html>
