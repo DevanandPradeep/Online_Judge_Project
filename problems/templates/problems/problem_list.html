@@ -1,0 +1,9 @@
+<h2>All Problems</h2>
+
+<ul>
+{% for problem in problems %}
+    <li>
+        <a href="{% url 'html-code-run' %}?problem_id={{ problem.pk }}">{{ problem.title }}</a>
+    </li>
+{% endfor %}
+</ul>

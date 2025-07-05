@@ -1,0 +1,9 @@
+<h2>{{ problem.title }}</h2>
+<p>{{ problem.description }}</p>
+
+<a href="{% url 'problem_list_html' %}">Back to List</a>
+
+<!-- 👉 Add this Solve button -->
+<p>
+    <a href="{% url 'html-code-run' %}" style="font-weight: bold;">Solve This Problem</a>
+</p>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Judge Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .btn {
+            display: inline-block;
+            margin: 15px 10px 0 0;
+            padding: 12px 25px;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .section {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👋 Welcome to Online Judge Dashboard</h1>
+        <p>Start solving problems, track your submissions, and improve your coding skills.</p>
+
+        <div class="section">
+            <a href="{% url 'problem_list_html' %}" class="btn">🧠 View Problems</a>
+            <a href="/executor/my-submissions/" class="btn">📄 My Submissions</a>
+            <a href="/admin/" class="btn">🛠 Admin Panel</a>
+        </div>
+
+    </div>
+</body>
+</html>

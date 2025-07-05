@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Code Executor (Multi-language)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+        h2 {
+            color: #333;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .buttons {
+            margin-top: 15px;
+        }
+        .buttons button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .fail {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="{% url 'problem_submissions' problem.id %}">📄 View My Submissions</a>
+
+    {% if problem %}
+        <h2>{{ problem.title }}</h2>
+
+        {% if already_done %}
+            <p class="success">✅ Already Done</p>
+        {% endif %}
+
+        <p>{{ problem.description }}</p>
+        <p><strong>Sample Input:</strong> <pre>{{ problem.sample_input }}</pre></p>
+        <p><strong>Expected Output:</strong> <pre>{{ problem.sample_output }}</pre></p>
+    {% endif %}
+
+    <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <div class="buttons">
+        <button type="submit" name="action" value="run">▶️ Run Code</button>
+        <button type="submit" name="action" value="submit">✅ Submit Code</button>
+    </div>
+    </form>
+
+    <hr>
+
+    {% if run_output %}
+        <h3>🔹 Run Output (Custom Input):</h3>
+        <pre>{{ run_output }}</pre>
+    {% endif %}
+
+    {% if hidden_results %}
+        <h3>🔸 Submission Hidden Test Results:</h3>
+        <table>
+            <tr>
+                <th>Input</th>
+                <th>Expected</th>
+                <th>Actual</th>
+                <th>Result</th>
+            </tr>
+            {% for result in hidden_results %}
+                <tr>
+                    <td><pre>{{ result.input }}</pre></td>
+                    <td>{{ result.expected }}</td>
+                    <td>{{ result.actual }}</td>
+                    <td class="{% if result.result == 'Pass' %}success{% else %}fail{% endif %}">{{ result.result }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <p><strong>Verdict:</strong>
+            {% if verdict %}
+                {% if verdict|slice:":2" == "✅" %}
+                    <span class="success">{{ verdict }}</span>
+                {% else %}
+                    <span class="fail">{{ verdict }}</span>
+                {% endif %}
+            {% endif %}
+        </p>
+    {% endif %}
+
+</body>
+</html>

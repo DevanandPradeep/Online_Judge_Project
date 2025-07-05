@@ -1,0 +1,26 @@
+<h2>{{ problem.title }} - My Submissions</h2>
+
+{% if already_done %}
+<p style="color: green;"><strong>✅ Already Done</strong></p>
+{% endif %}
+
+<table border="1">
+    <tr>
+        <th>Time</th>
+        <th>Verdict</th>
+        <th>Language</th>
+        <th>Code</th>
+    </tr>
+    {% for submission in submissions %}
+    <tr>
+        <td>{{ submission.created_at }}</td>
+        <td>{{ submission.verdict }}</td>
+        <td>{{ submission.language }}</td>
+        <td><pre>{{ submission.code }}</pre></td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4">No submissions yet.</td>
+    </tr>
+    {% endfor %}
+</table>
