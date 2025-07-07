@@ -1,39 +1,44 @@
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.views import APIView
-from .serializers import RegisterSerializer, LoginSerializer
-from django.contrib.auth import login, logout
+# accounts/views.py
 
-class RegisterView(generics.CreateAPIView):
-    serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import User  # if you use a custom user model
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-class LoginView(APIView):
-    permission_classes = [AllowAny]
+# Registration View
+def register_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Registration successful. Please log in.")
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'accounts/register.html', {'form': form})
 
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data
+# Login View
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
             login(request, user)
-            return Response({"message": "Logged in successfully"})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return redirect('user-profile')
+        else:
+            messages.error(request, "Invalid credentials")
+    else:
+        form = AuthenticationForm()
+    return render(request, 'accounts/login.html', {'form': form})
 
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+# Logout View
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
-    def post(self, request):
-        logout(request)
-        return Response({"message": "Logged out"})
-
-class UserView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        return Response({
-            "username": user.username,
-            "email": user.email,
-            "full_name": user.full_name
-        })
+# User Profile View
+@login_required
+def user_view(request):
+    return render(request, 'accounts/user.html', {'user': request.user})
