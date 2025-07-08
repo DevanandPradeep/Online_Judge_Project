@@ -16,6 +16,7 @@ class Submission(models.Model):
 class UserSolvedProblem(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
+    solved_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'problem')
+        unique_together = ('user', 'problem')  # 🛡️ Prevent duplicate solving

@@ -10,6 +10,14 @@ from .forms import CodeExecutionForm
 from problems.models import Problem  # Import Problem
 from .models import Submission, UserSolvedProblem
 from django.contrib.auth.decorators import login_required
+from .ai_helpers import generate_hint
+from django.http import JsonResponse
+import openai
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from openai import OpenAI
+from decouple import config
+from django.conf import settings
 
 class CodeExecutorView(APIView):
     def post(self, request):
@@ -29,6 +37,8 @@ class CodeExecutorView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+@login_required
 def code_executor_form_view(request):
     run_output = ""
     verdict = ""
@@ -96,6 +106,7 @@ def code_executor_form_view(request):
                     hidden_results = hidden_test_results
 
                     if request.user.is_authenticated:
+                        # Save submission
                         Submission.objects.create(
                             user=request.user,
                             problem=problem,
@@ -103,6 +114,16 @@ def code_executor_form_view(request):
                             language=language,
                             verdict=verdict
                         )
+
+                        # ✅ Save solve if passed and not already done
+                        if all_passed:
+                            already_solved = UserSolvedProblem.objects.filter(user=request.user, problem=problem).exists()
+                            if not already_solved:
+                                UserSolvedProblem.objects.create(user=request.user, problem=problem)
+
+                                # ✅ Increment problem count
+                                request.user.problems_solved += 1
+                                request.user.save()
 
                 except Exception as e:
                     verdict = f"❌ Error: {str(e)}"
@@ -129,3 +150,14 @@ def problem_submissions_view(request, problem_id):
         'submissions': submissions,
         'already_done': already_done,
     })
+
+@csrf_exempt
+@login_required
+def generate_hint_view(request, problem_id):
+    try:
+        problem = Problem.objects.get(pk=problem_id)
+        prompt = f"Give a short and helpful programming hint for this problem:\n\n{problem.title}\n{problem.description}"
+        hint = generate_hint(prompt)
+        return JsonResponse({"hint": hint})
+    except Exception as e:
+        return JsonResponse({"hint": f"⚠️ Failed to generate hint:\n{str(e)}"}, status=500)

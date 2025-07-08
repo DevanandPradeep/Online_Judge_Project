@@ -59,7 +59,28 @@
         <p>{{ problem.description }}</p>
         <p><strong>Sample Input:</strong> <pre>{{ problem.sample_input }}</pre></p>
         <p><strong>Expected Output:</strong> <pre>{{ problem.sample_output }}</pre></p>
+
+        <!-- 💡 Smart Hint Button -->
+        <button onclick="fetchHint('{{ problem.id }}')">💡 Show Hint</button>
+        <p id="hint-box" style="margin-top: 10px; font-style: italic; color: #555;"></p>
+
+        <script>
+        function fetchHint(problemId) {
+            const hintBox = document.getElementById("hint-box");
+            hintBox.innerText = "⏳ Generating hint...";
+
+            fetch(`/executor/hint/${problemId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    hintBox.innerText = data.hint;
+                })
+                .catch(error => {
+                    hintBox.innerText = "⚠️ Failed to load hint.";
+                });
+        }
+        </script>
     {% endif %}
+
 
     <form method="post">
     {% csrf_token %}

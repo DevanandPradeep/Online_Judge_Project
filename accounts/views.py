@@ -4,20 +4,23 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import User  # if you use a custom user model
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from .forms import CustomUserCreationForm
 
-# Registration View
+User = get_user_model()
+
 def register_view(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Registration successful. Please log in.")
-            return redirect('login')
+            return redirect('dashboard')
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, 'accounts/register.html', {'form': form})
+
 
 # Login View
 def login_view(request):
@@ -26,7 +29,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('user-profile')
+            return redirect('dashboard')
         else:
             messages.error(request, "Invalid credentials")
     else:
@@ -42,3 +45,8 @@ def logout_view(request):
 @login_required
 def user_view(request):
     return render(request, 'accounts/user.html', {'user': request.user})
+
+@login_required
+def leaderboard_view(request):
+    users = User.objects.all().order_by('-problems_solved', 'username')
+    return render(request, 'accounts/leaderboard.html', {'users': users})

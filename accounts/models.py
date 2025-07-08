@@ -6,7 +6,9 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    USERNAME_FIELD = 'username'  # or 'email' if you prefer
+    problems_solved = models.PositiveIntegerField(default=0)
+
+    USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'full_name']
 
     def __str__(self):
