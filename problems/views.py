@@ -1,8 +1,18 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
+from executor.models import UserSolvedProblem  # ✅ import this
 from .models import Problem
 
-# List all problems in HTML
 def problem_list_html(request):
+    user = request.user
     problems = Problem.objects.all()
-    return render(request, 'problems/problem_list.html', {'problems': problems})
 
+    # Get set of problem IDs solved by this user
+    solved_problems = set(
+        UserSolvedProblem.objects.filter(user=user).values_list('problem_id', flat=True)
+    )
+
+    # Add is_solved attribute to each problem
+    for problem in problems:
+        problem.is_solved = problem.id in solved_problems
+
+    return render(request, 'problems/problem_list.html', {'problems': problems})

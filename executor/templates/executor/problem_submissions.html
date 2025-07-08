@@ -1,26 +1,106 @@
-<h2>{{ problem.title }} - My Submissions</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ problem.title }} - My Submissions</title>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+        }
+        h2 {
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: #1c1c1c;
+        }
+        table, th, td {
+            border: 1px solid #333;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            color: white;
+        }
+        th {
+            background-color: #2a2a2a;
+        }
+        pre {
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+        }
+        .success {
+            color: #22c55e; /* Green for pass verdicts */
+            font-weight: bold;
+        }
+        .fail {
+            color: #ef4444; /* Red for fail verdicts */
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
-{% if already_done %}
-<p style="color: green;"><strong>✅ Already Done</strong></p>
-{% endif %}
+    <h2>{{ problem.title }} - My Submissions</h2>
 
-<table border="1">
-    <tr>
-        <th>Time</th>
-        <th>Verdict</th>
-        <th>Language</th>
-        <th>Code</th>
-    </tr>
-    {% for submission in submissions %}
-    <tr>
-        <td>{{ submission.created_at }}</td>
-        <td>{{ submission.verdict }}</td>
-        <td>{{ submission.language }}</td>
-        <td><pre>{{ submission.code }}</pre></td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="4">No submissions yet.</td>
-    </tr>
-    {% endfor %}
-</table>
+    <div style="text-align: center; margin-top: 10px;">
+    <a href="{% url 'html-code-run' %}?problem_id={{ problem.id }}">
+        <button class="back-btn">← Back to Problem</button>
+    </a>
+    </div>
+
+    <style>
+    .back-btn {
+        background-color: #f97316;
+        color: white;
+        padding: 16px 32px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    .back-btn:hover {
+        background-color: #fb923c;
+    }
+    </style>
+
+    <table>
+        <tr>
+            <th>Time</th>
+            <th>Verdict</th>
+            <th>Language</th>
+            <th>Code</th>
+        </tr>
+        {% for submission in submissions %}
+        <tr>
+            <td>{{ submission.created_at }}</td>
+            <td>
+                {% if "Passed All Hidden Cases" in submission.verdict or submission.verdict|slice:":1" == "✅" %}
+                    <span class="success">{{ submission.verdict }}</span>
+                {% else %}
+                    <span class="fail">{{ submission.verdict }}</span>
+                {% endif %}
+            </td>
+            <td>{{ submission.language }}</td>
+            <td><pre>{{ submission.code }}</pre></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No submissions yet.</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>

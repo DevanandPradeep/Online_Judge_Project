@@ -15,7 +15,7 @@
             text-align: center;
         }
         th {
-            background-color: #f2b632;
+            background-color: hsl(24, 100%, 49%);
         }
         h2 {
             text-align: center;
@@ -44,8 +44,19 @@
     {% endfor %}
 </table>
 
-<div class="back-link">
-    <a href="{% url 'user-profile' %}">← Back to Dashboard</a>
+<div class="back-link" style="margin-top: 20px;">
+    <a href="{% url 'dashboard' %}" 
+       style="
+           color: white;
+           text-decoration: none;
+           font-size: 20px;
+           transition: color 0.3s;
+       "
+       onmousedown="this.style.color='#f97316';"
+       onmouseup="this.style.color='white';"
+    >
+        ← Back to Dashboard
+    </a>
 </div>
 
 </body>

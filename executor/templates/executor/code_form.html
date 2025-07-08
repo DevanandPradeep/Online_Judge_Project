@@ -1,133 +1,270 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Code Executor (Multi-language)</title>
+    <title>{{ problem.title }}</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
+            margin: 0;
+            padding: 0;
+            background-color: #0f0f0f;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
         }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .left-panel {
+            flex: 0 0 50%;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+        }
+
+        .right-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+        }
+
+        .resizer {
+            width: 5px;
+            background-color: #333;
+            cursor: col-resize;
+        }
+
         h2 {
-            color: #333;
+            font-size: 28px;
+            color: #fff;
+            margin-top: 10px;
         }
+
+        p, pre {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ddd;
+        }
+
+        a {
+            color: #f97316;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        a:hover {
+            color: #fb923c;
+        }
+
+        button {
+            background-color: #f97316;
+            color: white;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #fb923c;
+        }
+
+        .success {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .fail {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
         table {
-            border-collapse: collapse;
             width: 100%;
-            margin-top: 15px;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: #1c1c1c;
         }
+
         table, th, td {
-            border: 1px solid #ddd;
+            border: 1px solid #333;
         }
+
         th, td {
             padding: 10px;
             text-align: center;
+            color: #fff; /* ✅ Force white text inside table cells */
         }
-        pre {
-            margin: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
+
         .buttons {
             margin-top: 15px;
+            text-align: center;
         }
-        .buttons button {
-            padding: 10px 15px;
-            margin-right: 10px;
-            cursor: pointer;
+
+        textarea, select, input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background-color: #2a2a2a;
+            color: white;
+            font-size: 15px;
         }
-        .success {
-            color: green;
-            font-weight: bold;
+
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: #f97316;
         }
-        .fail {
-            color: red;
-            font-weight: bold;
+
+        #hint-box {
+            margin-top: 10px;
+            font-style: italic;
+            color: #d1d5db;
         }
+
+        hr {
+            margin-top: 20px;
+            border: none;
+            border-top: 1px solid #333;
+        }
+        h3 {
+            color: #fff;
+        }
+
     </style>
 </head>
 <body>
 
-    <a href="{% url 'problem_submissions' problem.id %}">📄 View My Submissions</a>
+<div class="main-container">
+    <div class="left-panel">
+        <div style="text-align: center; margin-bottom: 15px;">
+        <a href="{% url 'problem_submissions' problem.id %}">
+            <button class="top-btn">📄 My Submissions</button>
+        </a>
+        <a href="{% url 'dashboard' %}">
+            <button class="top-btn">← Dashboard</button>
+        </a>
+        </div>
 
-    {% if problem %}
-        <h2>{{ problem.title }}</h2>
+        {% if problem %}
+            <h2>{{ problem.title }}</h2>
 
-        {% if already_done %}
-            <p class="success">✅ Already Done</p>
+            {% if already_done %}
+                <p class="success">✅ Already Done</p>
+            {% endif %}
+
+            <p>{{ problem.description }}</p>
+            <p><strong>Sample Input:</strong> <pre>{{ problem.sample_input }}</pre></p>
+            <p><strong>Expected Output:</strong> <pre>{{ problem.sample_output }}</pre></p>
+
+            {% if problem.constraints %}
+                <p><strong>Constraints:</strong> <pre>{{ problem.constraints }}</pre></p>
+            {% endif %}
+
+            <button onclick="fetchHint('{{ problem.id }}')">💡 Show Hint</button>
+            <p id="hint-box"></p>
+        {% endif %}
+    </div>
+
+    <div class="resizer"></div>
+
+    <div class="right-panel">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <div class="buttons">
+                <button type="submit" name="action" value="run">▶️ Run Code</button>
+                <button type="submit" name="action" value="submit">✅ Submit Code</button>
+            </div>
+        </form>
+
+        <hr>
+
+        {% if run_output %}
+            <h3>🔹 Run Output (Custom Input):</h3>
+            <pre>{{ run_output }}</pre>
         {% endif %}
 
-        <p>{{ problem.description }}</p>
-        <p><strong>Sample Input:</strong> <pre>{{ problem.sample_input }}</pre></p>
-        <p><strong>Expected Output:</strong> <pre>{{ problem.sample_output }}</pre></p>
-
-        <!-- 💡 Smart Hint Button -->
-        <button onclick="fetchHint('{{ problem.id }}')">💡 Show Hint</button>
-        <p id="hint-box" style="margin-top: 10px; font-style: italic; color: #555;"></p>
-
-        <script>
-        function fetchHint(problemId) {
-            const hintBox = document.getElementById("hint-box");
-            hintBox.innerText = "⏳ Generating hint...";
-
-            fetch(`/executor/hint/${problemId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    hintBox.innerText = data.hint;
-                })
-                .catch(error => {
-                    hintBox.innerText = "⚠️ Failed to load hint.";
-                });
-        }
-        </script>
-    {% endif %}
-
-
-    <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-
-    <div class="buttons">
-        <button type="submit" name="action" value="run">▶️ Run Code</button>
-        <button type="submit" name="action" value="submit">✅ Submit Code</button>
-    </div>
-    </form>
-
-    <hr>
-
-    {% if run_output %}
-        <h3>🔹 Run Output (Custom Input):</h3>
-        <pre>{{ run_output }}</pre>
-    {% endif %}
-
-    {% if hidden_results %}
-        <h3>🔸 Submission Hidden Test Results:</h3>
-        <table>
-            <tr>
-                <th>Input</th>
-                <th>Expected</th>
-                <th>Actual</th>
-                <th>Result</th>
-            </tr>
-            {% for result in hidden_results %}
+        {% if hidden_results %}
+            <h3>🔸 Submission Hidden Test Results:</h3>
+            <table>
                 <tr>
-                    <td><pre>{{ result.input }}</pre></td>
-                    <td>{{ result.expected }}</td>
-                    <td>{{ result.actual }}</td>
-                    <td class="{% if result.result == 'Pass' %}success{% else %}fail{% endif %}">{{ result.result }}</td>
+                    <th>Input</th>
+                    <th>Expected</th>
+                    <th>Actual</th>
+                    <th>Result</th>
                 </tr>
-            {% endfor %}
-        </table>
+                {% for result in hidden_results %}
+                    <tr>
+                        <td><pre>{{ result.input }}</pre></td>
+                        <td>{{ result.expected }}</td>
+                        <td>{{ result.actual }}</td>
+                        <td class="{% if result.result == 'Pass' %}success{% else %}fail{% endif %}">{{ result.result }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
 
-        <p><strong>Verdict:</strong>
+            <p><strong>Verdict:</strong>
             {% if verdict %}
-                {% if verdict|slice:":2" == "✅" %}
+                {% if "Passed All Hidden Cases" in verdict or verdict|slice:":1" == "✅" %}
                     <span class="success">{{ verdict }}</span>
                 {% else %}
                     <span class="fail">{{ verdict }}</span>
                 {% endif %}
             {% endif %}
-        </p>
-    {% endif %}
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function fetchHint(problemId) {
+    const hintBox = document.getElementById("hint-box");
+    hintBox.innerText = "⏳ Generating hint...";
+
+    fetch(`/executor/hint/${problemId}/`)
+        .then(response => response.json())
+        .then(data => {
+            hintBox.innerText = data.hint;
+        })
+        .catch(error => {
+            hintBox.innerText = "⚠️ Failed to load hint.";
+        });
+}
+
+// Resizer functionality
+const resizer = document.querySelector('.resizer');
+const leftPanel = document.querySelector('.left-panel');
+let isResizing = false;
+
+resizer.addEventListener('mousedown', function(e) {
+    isResizing = true;
+    document.body.style.cursor = 'col-resize';
+});
+
+document.addEventListener('mousemove', function(e) {
+    if (!isResizing) return;
+    const newWidth = e.clientX;
+    if (newWidth > 200 && newWidth < window.innerWidth - 200) { // prevent too narrow or too wide
+        leftPanel.style.flexBasis = newWidth + 'px';
+    }
+});
+
+document.addEventListener('mouseup', function() {
+    isResizing = false;
+    document.body.style.cursor = 'default';
+});
+</script>
 
 </body>
 </html>

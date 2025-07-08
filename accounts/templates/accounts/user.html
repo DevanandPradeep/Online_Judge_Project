@@ -1,3 +1,38 @@
-<h2>Welcome, {{ user.username }}</h2>
-<p>Email: {{ user.email }}</p>
-<a href="{% url 'logout' %}">Logout</a>
+<h2 style="
+    text-align: center;
+    font-size: 36px;
+    color: white;
+    margin-top: 40px;
+    font-weight: bold;
+">
+    Welcome, {{ user.username }}
+</h2>
+
+<p style="
+    text-align: center;
+    font-size: 22px;
+    color: #d1d5db; /* light gray */
+    margin-top: 10px;
+">
+    Email: {{ user.email }}
+</p>
+
+<div style="text-align: center; margin-top: 30px;">
+    <a href="{% url 'logout' %}" 
+       style="
+           background-color: #f97316; 
+           color: white; 
+           padding: 12px 24px; 
+           text-decoration: none; 
+           font-size: 18px; 
+           border-radius: 8px; 
+           transition: background-color 0.3s;
+           font-weight: bold;
+       "
+       onmouseover="this.style.backgroundColor='#fb923c';"
+       onmouseout="this.style.backgroundColor='#f97316';"
+    >
+        Logout
+    </a>
+</div>
+

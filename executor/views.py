@@ -1,5 +1,6 @@
 import subprocess
 import os
+import time
 from django.shortcuts import render, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,6 +19,9 @@ from django.views.decorators.csrf import csrf_exempt
 from openai import OpenAI
 from decouple import config
 from django.conf import settings
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 
 class CodeExecutorView(APIView):
     def post(self, request):
@@ -54,7 +58,8 @@ def code_executor_form_view(request):
         if form.is_valid():
             code = form.cleaned_data['code']
             language = form.cleaned_data['language']
-            custom_input = form.cleaned_data['custom_input'] or ""
+            custom_input = form.cleaned_data['custom_input']
+
             filename = "temp.py" if language == 'python' else "temp.c" if language == 'c' else "temp.cpp"
 
             with open(filename, "w") as f:
@@ -62,23 +67,41 @@ def code_executor_form_view(request):
 
             action = request.POST.get('action')
 
+            # ➔ Normalize custom input: handle both '1 2' and '1\n2'
+            if custom_input and ' ' in custom_input:
+                custom_input = custom_input.replace(' ', '\n')
+
+            # ➔ If Run button pressed:
             if action == 'run':
-                try:
-                    if language == 'python':
-                        result = subprocess.run(["python3", filename], input=custom_input.encode(), capture_output=True, timeout=5)
-                    elif language == 'c':
-                        subprocess.run(["gcc", filename, "-o", "temp_c_exe"], check=True)
-                        result = subprocess.run(["./temp_c_exe"], input=custom_input.encode(), capture_output=True, timeout=5)
-                    elif language == 'cpp':
-                        subprocess.run(["g++", filename, "-o", "temp_cpp_exe"], check=True)
-                        result = subprocess.run(["./temp_cpp_exe"], input=custom_input.encode(), capture_output=True, timeout=5)
+                if not custom_input.strip():
+                    run_output = "⚠️ No custom input provided."
+                else:
+                    try:
+                        start = time.time()
+                        if language == 'python':
+                            result = subprocess.run(["python3", filename], input=custom_input.encode(), capture_output=True, timeout=5)
+                        elif language == 'c':
+                            subprocess.run(["gcc", filename, "-o", "temp_c_exe"], check=True)
+                            result = subprocess.run(["./temp_c_exe"], input=custom_input.encode(), capture_output=True, timeout=5)
+                        elif language == 'cpp':
+                            subprocess.run(["g++", filename, "-o", "temp_cpp_exe"], check=True)
+                            result = subprocess.run(["./temp_cpp_exe"], input=custom_input.encode(), capture_output=True, timeout=5)
 
-                    stdout = result.stdout.decode().strip()
-                    stderr = result.stderr.decode().strip()
-                    run_output = stdout if stdout else stderr or "No Output"
-                except Exception as e:
-                    run_output = f"❌ Error: {str(e)}"
+                        exec_time = time.time() - start
+                        stdout = result.stdout.decode().strip()
+                        stderr = result.stderr.decode().strip()
 
+                        if exec_time > 4.8:
+                            run_output = "⏱️ Time Limit Exceeded (TLE)"
+                        else:
+                            run_output = stdout if stdout else stderr or "No Output"
+
+                    except subprocess.TimeoutExpired:
+                        run_output = "⏱️ Time Limit Exceeded (TLE)"
+                    except Exception as e:
+                        run_output = f"❌ Error: {str(e)}"
+
+            # ➔ If Submit button pressed:
             elif action == 'submit' and problem:
                 try:
                     all_passed = True
@@ -88,9 +111,18 @@ def code_executor_form_view(request):
                         h_input = case['input']
                         h_expected = case['output']
 
-                        result = subprocess.run(["python3", filename], input=h_input.encode(), capture_output=True, timeout=5)
-                        h_actual = result.stdout.decode().strip()
-                        passed = (h_actual == h_expected)
+                        # Normalize hidden test case inputs too
+                        if ' ' in h_input:
+                            h_input = h_input.replace(' ', '\n')
+
+                        try:
+                            result = subprocess.run(["python3", filename], input=h_input.encode(), capture_output=True, timeout=5)
+                            h_actual = result.stdout.decode().strip()
+                            passed = (h_actual == h_expected)
+
+                        except subprocess.TimeoutExpired:
+                            h_actual = "Time Limit Exceeded"
+                            passed = False
 
                         hidden_test_results.append({
                             'input': h_input,
@@ -106,7 +138,6 @@ def code_executor_form_view(request):
                     hidden_results = hidden_test_results
 
                     if request.user.is_authenticated:
-                        # Save submission
                         Submission.objects.create(
                             user=request.user,
                             problem=problem,
@@ -115,15 +146,15 @@ def code_executor_form_view(request):
                             verdict=verdict
                         )
 
-                        # ✅ Save solve if passed and not already done
                         if all_passed:
                             already_solved = UserSolvedProblem.objects.filter(user=request.user, problem=problem).exists()
                             if not already_solved:
                                 UserSolvedProblem.objects.create(user=request.user, problem=problem)
 
-                                # ✅ Increment problem count
-                                request.user.problems_solved += 1
-                                request.user.save()
+                                # ✅ Refresh the user object from the database
+                                user = User.objects.get(pk=request.user.pk)
+                                user.problems_solved = UserSolvedProblem.objects.filter(user=user).count()  # Safer: recalculate
+                                user.save()
 
                 except Exception as e:
                     verdict = f"❌ Error: {str(e)}"
