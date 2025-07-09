@@ -1,1 +1,18 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+
+# Environment files
 .env
+
+# Database
+*.sqlite3
+db.sqlite3
+
+# Keys, secrets, certificates
+keys/
+*.pem
+

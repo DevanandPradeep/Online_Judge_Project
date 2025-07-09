@@ -3,3 +3,5 @@ djangorestframework==3.16.0
 django-cors-headers
 rest_framework_simplejwt
 djangorestframework-simplejwt
+python-decouple
+google-generativeai

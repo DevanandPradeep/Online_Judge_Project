@@ -13,14 +13,11 @@ from .models import Submission, UserSolvedProblem
 from django.contrib.auth.decorators import login_required
 from .ai_helpers import generate_hint
 from django.http import JsonResponse
-import openai
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from openai import OpenAI
 from decouple import config
 from django.conf import settings
-from django.contrib.auth import get_user_model
-User = get_user_model()
+
 
 
 class CodeExecutorView(APIView):
@@ -152,7 +149,7 @@ def code_executor_form_view(request):
                                 UserSolvedProblem.objects.create(user=request.user, problem=problem)
 
                                 # ✅ Refresh the user object from the database
-                                user = User.objects.get(pk=request.user.pk)
+                                user = request.user
                                 user.problems_solved = UserSolvedProblem.objects.filter(user=user).count()  # Safer: recalculate
                                 user.save()
 
